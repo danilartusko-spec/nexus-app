@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070c15">
   <title>neXus Ray</title>
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <svg class="svg-sprite" aria-hidden="true">
@@ -16,6 +16,7 @@
     <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M18.2 16a8 8 0 1 1 .6-7.2L20 12"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 19h2M19 14v2"/></symbol>
     <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
     <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 2v20M4 7l16 10M4 17 20 7M9 4l3 3 3-3M9 20l3-3 3 3M4 11l4-1-1-4M20 13l-4 1 1 4"/></symbol>
@@ -41,7 +42,7 @@
 
     <section id="content" hidden>
       <header class="topbar">
-        <div class="brand"><span class="brand-glyph" aria-label="NR"><img class="brand-logo" src="logo.jpg?v=10" alt="NR"></span><div><b>neXus Ray</b><small>Private network</small></div></div>
+        <div class="brand"><span class="brand-glyph" aria-label="NR"><img class="brand-logo" src="logo.jpg?v=11" alt="NR"></span><div><b>neXus Ray</b><small>Private network</small></div></div>
         <button id="refresh" class="icon-button" aria-label="Обновить"><svg><use href="#i-refresh"></use></svg></button>
       </header>
 
@@ -68,6 +69,8 @@
           </div>
         </article>
 
+        <div id="home-promo" class="home-promo" data-go="plans" hidden></div>
+
         <button id="purchase-cta" class="purchase-cta" data-go="plans">
           <span class="purchase-icon"><svg><use href="#i-plus"></use></svg></span>
           <span class="purchase-copy">
@@ -77,12 +80,14 @@
           <em>›</em>
         </button>
 
-        <div class="quick-grid single">
-          <button id="config-action" class="quick primary" data-action="configs"><span><svg><use href="#i-download"></use></svg></span><div><b>Получить настройки</b><small>отправим в чат с ботом</small></div><em>›</em></button>
+        <div id="quick-connect-grid" class="quick-grid">
+          <button id="qr-action" class="quick primary" data-action="qr"><span><svg><use href="#i-qr"></use></svg></span><div><b>Большой QR-код</b><small>основной и резерв свайпом</small></div><em>›</em></button>
+          <button id="config-action" class="quick" data-action="configs"><span><svg><use href="#i-download"></use></svg></span><div><b>Файлы в бот</b><small>отправим .conf в чат</small></div><em>›</em></button>
         </div>
 
         <div class="section-head"><div><span>Управление</span><h2>Быстрые действия</h2></div></div>
         <div class="action-list">
+          <button id="guide-action" data-action="guide"><span class="action-icon green"><svg><use href="#i-help"></use></svg></span><div><b>Как подключить за 1 минуту</b><small>скачать приложение и сканировать QR</small></div><em>›</em></button>
           <button id="regen-action" data-action="regenerate"><span class="action-icon violet"><svg><use href="#i-refresh"></use></svg></span><div><b>Перевыпустить доступ</b><small>старые ключи перестанут работать</small></div><em>›</em></button>
           <button id="freeze-action" data-action="freeze"><span class="action-icon cyan"><svg><use href="#i-snow"></use></svg></span><div><b>Заморозить подписку</b><small id="freeze-caption">банк заморозки</small></div><em>›</em></button>
         </div>
@@ -91,11 +96,12 @@
       <section id="devices-view" class="view">
         <header class="page-head"><p class="eyebrow">Конфигурации</p><h1>Устройства</h1><span id="device-summary">—</span></header>
         <div id="device-list" class="device-list"></div>
-        <article class="info-card"><span>i</span><p>Файлы конфигураций не хранятся в Mini App. По запросу бот отправляет их прямо в защищённый Telegram-чат.</p></article>
+        <article class="info-card"><span>i</span><p>Нажмите «Большой QR», чтобы отсканировать основной и резервный контур свайпом прямо здесь, или «Файлы в бот», чтобы получить .conf в чат.</p></article>
       </section>
 
       <section id="plans-view" class="view">
         <header class="page-head"><p class="eyebrow">Подписка</p><h1>Купить</h1><span id="plans-caption">Выберите количество устройств и период.</span></header>
+        <div id="promo-banner" class="promo-banner" hidden></div>
         <div id="device-selector" class="segmented"></div>
         <article id="plan-context" class="plan-context" hidden></article>
         <div id="plan-list" class="plan-list"></div>
@@ -139,6 +145,6 @@
   </aside>
   <div id="activity" class="activity" hidden><span></span><b id="activity-text">Выполняем…</b></div>
   <div id="toast" class="toast"></div>
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
