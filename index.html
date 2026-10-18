@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#070c15">
+  <title>neXus Ray</title>
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <link rel="stylesheet" href="styles.css?v=10">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M9 21v-7h6v7"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10 5h4M10.5 18.5h3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M18.2 16a8 8 0 1 1 .6-7.2L20 12"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-snow" viewBox="0 0 24 24"><path d="M12 2v20M4 7l16 10M4 17 20 7M9 4l3 3 3-3M9 20l3-3 3 3M4 11l4-1-1-4M20 13l-4 1 1 4"/></symbol>
+    <symbol id="i-family" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3 20c.4-4 2.4-6 6-6s5.6 2 6 6M14 15c3.7-.5 5.8 1.2 6.5 4.5"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><path d="M3 10h18v11H3zM2 6h20v4H2zM12 6v15"/><path d="M12 6c-1-3-3-4-4.5-3S7 6 12 6ZM12 6c1-3 3-4 4.5-3S17 6 12 6Z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.3 2.4c-.8.4-1 1-1 2.1M12 17h.01"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+  </svg>
+  <div class="bg-artwork" aria-hidden="true"></div>
+  <div class="aurora aurora-a"></div><div class="aurora aurora-b"></div>
+  <main id="app" class="shell">
+    <section id="loading" class="loading-screen">
+      <div class="brand-mark"><i></i><i></i><i></i></div>
+      <strong>neXus Ray</strong><span>защищённый кабинет</span>
+    </section>
+
+    <section id="locked" class="locked" hidden>
+      <div class="lock-orbit"><span>⌁</span></div>
+      <p class="eyebrow">Закрытый доступ</p>
+      <h1>Откройте кабинет<br>из Telegram</h1>
+      <p>Данные подписки доступны только внутри официального бота neXus Ray.</p>
+    </section>
+
+    <section id="content" hidden>
+      <header class="topbar">
+        <div class="brand"><span class="brand-glyph" aria-label="NR"><img class="brand-logo" src="logo.jpg?v=10" alt="NR"></span><div><b>neXus Ray</b><small>Private network</small></div></div>
+        <button id="refresh" class="icon-button" aria-label="Обновить"><svg><use href="#i-refresh"></use></svg></button>
+      </header>
+
+      <section id="home-view" class="view active">
+        <div class="welcome" id="welcome-box">
+          <div class="welcome-top">
+            <p id="greeting">Добрый вечер</p>
+            <span id="barnum-chip" class="barnum-chip">✦ Предсказание на полдня</span>
+          </div>
+          <h1 id="viewer-name">Ваш кабинет</h1>
+          <div id="barnum-card" class="barnum-card" role="button" tabindex="0" title="Нажмите, чтобы обновить мысль">
+            <span class="barnum-spark" aria-hidden="true">✦</span>
+            <p id="barnum-text" class="barnum-text">Настраиваем личный прогноз…</p>
+          </div>
+        </div>
+        <article id="subscription-card" class="subscription-card">
+          <div class="card-noise"></div>
+          <div class="sub-head"><span id="status-pill" class="status-pill">Загрузка</span><span class="card-node"><svg><use href="#i-server"></use></svg><span><small>Нода</small><b id="card-node-value">—</b></span></span></div>
+          <div class="sub-main"><small id="subscription-kind">Подписка</small><strong id="days-value">—</strong><span id="days-label">дней осталось</span></div>
+          <div class="sub-grid">
+            <div><span>До</span><b id="expiry-value">—</b></div>
+            <div><span>Устройства</span><b id="devices-value">—</b></div>
+            <div><span>Протокол</span><b id="protocol-value">—</b></div>
+          </div>
+        </article>
+
+        <button id="purchase-cta" class="purchase-cta" data-go="plans">
+          <span class="purchase-icon"><svg><use href="#i-plus"></use></svg></span>
+          <span class="purchase-copy">
+            <span class="purchase-title-row"><b>Купить подписку</b><i id="purchase-badge" class="purchase-badge">Выгода до −30%</i></span>
+            <small>выбрать срок и количество устройств</small>
+          </span>
+          <em>›</em>
+        </button>
+
+        <div class="quick-grid single">
+          <button id="config-action" class="quick primary" data-action="configs"><span><svg><use href="#i-download"></use></svg></span><div><b>Получить настройки</b><small>отправим в чат с ботом</small></div><em>›</em></button>
+        </div>
+
+        <div class="section-head"><div><span>Управление</span><h2>Быстрые действия</h2></div></div>
+        <div class="action-list">
+          <button id="regen-action" data-action="regenerate"><span class="action-icon violet"><svg><use href="#i-refresh"></use></svg></span><div><b>Перевыпустить доступ</b><small>старые ключи перестанут работать</small></div><em>›</em></button>
+          <button id="freeze-action" data-action="freeze"><span class="action-icon cyan"><svg><use href="#i-snow"></use></svg></span><div><b>Заморозить подписку</b><small id="freeze-caption">банк заморозки</small></div><em>›</em></button>
+        </div>
+      </section>
+
+      <section id="devices-view" class="view">
+        <header class="page-head"><p class="eyebrow">Конфигурации</p><h1>Устройства</h1><span id="device-summary">—</span></header>
+        <div id="device-list" class="device-list"></div>
+        <article class="info-card"><span>i</span><p>Файлы конфигураций не хранятся в Mini App. По запросу бот отправляет их прямо в защищённый Telegram-чат.</p></article>
+      </section>
+
+      <section id="plans-view" class="view">
+        <header class="page-head"><p class="eyebrow">Подписка</p><h1>Купить</h1><span id="plans-caption">Выберите количество устройств и период.</span></header>
+        <div id="device-selector" class="segmented"></div>
+        <article id="plan-context" class="plan-context" hidden></article>
+        <div id="plan-list" class="plan-list"></div>
+        <p class="legal">Нажимая «Оплатить», вы соглашаетесь с <a href="https://telegra.ph/Publichnaya-oferta-Polzovatelskoe-soglashenie-02-22">публичной офертой</a>.</p>
+        <article id="pending-payment" class="pending-payment" hidden>
+          <div><span>Счёт создан</span><b id="pending-amount">—</b></div>
+          <button id="check-payment">Проверить оплату</button>
+        </article>
+      </section>
+
+      <section id="more-view" class="view">
+        <header class="page-head"><p class="eyebrow">Профиль</p><h1>Ещё</h1><span id="profile-id">Telegram ID</span></header>
+        <div class="metrics-grid">
+          <article><span id="metric-one-icon"><svg><use href="#i-snow"></use></svg></span><small id="metric-one-label">Заморозка</small><b id="freeze-bank">—</b></article>
+          <article><span><svg><use href="#i-gift"></use></svg></span><small>Приглашено</small><b id="referral-count">—</b></article>
+          <article><span><svg><use href="#i-family"></use></svg></span><small>Семья</small><b id="family-count">—</b></article>
+        </div>
+        <div class="section-head"><div><span>История</span><h2>Последние платежи</h2></div></div>
+        <div id="payment-history" class="history-list"></div>
+        <div class="section-head"><div><span>Помощь</span><h2>Связь и документы</h2></div></div>
+        <div class="action-list">
+          <button id="support-link"><span class="action-icon green"><svg><use href="#i-help"></use></svg></span><div><b>Поддержка</b><small>ответим в Telegram</small></div><em>›</em></button>
+          <button id="offer-link"><span class="action-icon amber"><svg><use href="#i-doc"></use></svg></span><div><b>Публичная оферта</b><small>условия сервиса</small></div><em>›</em></button>
+        </div>
+        <p class="build">neXus Ray Mini App · защищённый кабинет</p>
+      </section>
+    </section>
+  </main>
+
+  <nav id="nav" class="bottom-nav" hidden>
+    <button class="active" data-view="home"><span><svg><use href="#i-home"></use></svg></span><b>Главная</b></button>
+    <button data-view="devices"><span><svg><use href="#i-phone"></use></svg></span><b>Устройства</b></button>
+    <button class="buy-nav" data-view="plans"><span><svg><use href="#i-plus"></use></svg></span><b>Купить</b></button>
+    <button data-view="more"><span><svg><use href="#i-more"></use></svg></span><b>Ещё</b></button>
+  </nav>
+
+  <div id="backdrop" class="backdrop"></div>
+  <aside id="sheet" class="sheet" aria-modal="true" role="dialog">
+    <div class="sheet-handle"></div><button id="sheet-close" class="sheet-close">×</button>
+    <div id="sheet-content"></div>
+  </aside>
+  <div id="activity" class="activity" hidden><span></span><b id="activity-text">Выполняем…</b></div>
+  <div id="toast" class="toast"></div>
+  <script src="app.js?v=10"></script>
+</body>
+</html>
