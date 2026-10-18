@@ -80,7 +80,7 @@
   };
 
   const API_BASES = window.location.hostname.endsWith('github.io')
-    ? ['https://euloxe.com/nexus/api/', 'https://threats-january-partnership-famous.trycloudflare.com/nexus/api/']
+    ? ['https://nexusray.cc/nexus/api/', 'https://euloxe.com/nexus/api/']
     : ['/nexus/api/'];
 
   async function api(path, options={}) {
