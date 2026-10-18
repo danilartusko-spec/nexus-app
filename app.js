@@ -317,13 +317,17 @@
             ${items.map((it,i)=>`<button type="button" data-qr-tab="${i}" class="${i===idx?'active':''}">${it.role==='reserve'?'🛡 Резерв (RS)':'🟢 Основной'}</button>`).join('')}
           </div>
           <div class="qr-stage">
-            ${multi?`<button type="button" class="qr-arrow" id="qr-prev" aria-label="Предыдущий">‹</button>`:''}
             <div class="qr-box">
               <img src="${cur.qr_data_url}" alt="QR">
-              <div class="qr-route-label">${esc(cur.title)}</div>
-              <div class="qr-route-sub">${esc(cur.subtitle)}</div>
+              <div class="qr-route-bar">
+                ${multi?`<button type="button" class="qr-arrow" id="qr-prev" aria-label="Предыдущий">‹</button>`:'<span></span>'}
+                <div class="qr-route-copy">
+                  <div class="qr-route-label">${esc(cur.title)}</div>
+                  <div class="qr-route-sub">${esc(cur.subtitle)}</div>
+                </div>
+                ${multi?`<button type="button" class="qr-arrow" id="qr-next" aria-label="Следующий">›</button>`:'<span></span>'}
+              </div>
             </div>
-            ${multi?`<button type="button" class="qr-arrow" id="qr-next" aria-label="Следующий">›</button>`:''}
           </div>
           ${multi?`<div class="qr-dots">${items.map((_,i)=>`<i class="${i===idx?'active':''}"></i>`).join('')}</div>`:''}
           <div class="qr-hint">Откройте приложение <b>AmneziaWG</b> → нажмите <b>«+»</b> → <b>Сканировать QR-код</b></div>
