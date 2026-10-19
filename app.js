@@ -16,7 +16,7 @@
 
   const haptic = (kind='light') => tg?.HapticFeedback?.impactOccurred(kind);
   const notify = (message) => { const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(notify.timer); notify.timer=setTimeout(()=>el.classList.remove('show'),2600); };
-  const fmtDate = (seconds) => seconds ? new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(seconds*1000)) : '—';
+  const fmtDate = (seconds) => seconds ? new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(seconds*1000)).replace(/\s*г\.?$/i,'') : '—';
   const statusText = {active:'Активна',frozen:'Заморожена',expired:'Истекла',inactive:'Отключена',none:'Нет подписки'};
   const paymentText = {pending:'Ожидает оплаты',confirmed:'Подтверждён',processing:'Выдаём доступ',applied:'Оплачен',canceled:'Отменён',failed:'Нужна проверка',manual_review:'Ручная проверка'};
   const monthWord = (n) => n===1?'1 месяц':n<5?`${n} месяца`:`${n} месяцев`;
@@ -71,10 +71,10 @@
   };
   const nodeLabel = (nodeCode, inactive) => {
     const code = String(nodeCode || '').toLowerCase();
-    if (code === 's4') return '🇫🇷 Париж · S4';
-    if (code === 's3') return '🇦🇹 Вена · S3';
-    if (code === 's2') return '🇪🇸 Испания · S2';
-    if (code === 's1') return '🇵🇱 Польша · S1';
+    if (code.startsWith('s4')) return 'Main · Париж 🇫🇷';
+    if (code.startsWith('s3')) return 'Main · Вена 🇦🇹';
+    if (code.startsWith('s2')) return 'Reserve · Испания 🇪🇸';
+    if (code.startsWith('s1')) return 'Reserve · Польша 🇵🇱';
     if (code) return code.toUpperCase();
     return inactive ? 'ОЖИДАЕТ' : '—';
   };
@@ -150,7 +150,7 @@
     $('subscription-kind').textContent=familyMember?'Семейный доступ':'Подписка';
     $('expiry-value').textContent=sub.status==='frozen'?'После разморозки':fmtDate(sub.expires_at);
     $('devices-value').textContent=familyMember?`${sub.occupied_slots} слот`:`${sub.occupied_slots} / ${sub.device_limit}`;
-    $('protocol-value').textContent=sub.protocol==='amneziawg'?'AmneziaWG':sub.protocol==='hysteria'?'Hysteria':'—';
+    $('protocol-value').textContent=sub.protocol==='amneziawg'?'AWG':sub.protocol==='hysteria'?'Hysteria':'—';
     $('card-node-value').textContent=nodeLabel(sub.server.node, inactive);
     $('freeze-caption').textContent=`доступно ${sub.freeze_bank_days} дн.`;
     const freeze=$('freeze-action'); freeze.hidden=familyMember||inactive; freeze.dataset.action=sub.status==='frozen'?'unfreeze':'freeze'; freeze.querySelector('b').textContent=sub.status==='frozen'?'Разморозить подписку':'Заморозить подписку'; freeze.querySelector('.action-icon').innerHTML=icon(sub.status==='frozen'?'refresh':'snow');
@@ -301,7 +301,7 @@
     const globalRegen=document.querySelector('[data-global-regen]'); if(globalRegen)globalRegen.onclick=confirmRegenerate;
   }
 
-  async function openQrModal(slot=1, ownerId=0){
+  async function openQrModal(slot=1, ownerId=0, freshNotice=''){
     const data=await runAction('qr',{slot,owner_id:ownerId||undefined},{refresh:false,progress:'Готовим большой QR-код…',notifySuccess:false});
     if(!data||!data.items?.length)return;
     let idx=0;
@@ -311,7 +311,7 @@
       const multi=items.length>1;
       $('sheet-content').innerHTML=`
         <h2>${esc(data.device_name||`Слот ${slot}`)}</h2>
-        <p>${multi?'Переключайте Основной и Резервный контур стрелками или свайпом влево/вправо.':'Отсканируйте QR-код с другого устройства или отправьте файлы в бот.'}</p>
+        ${freshNotice?`<div class="qr-fresh-banner">✅ ${esc(freshNotice)}</div>`:`<p>${multi?'Переключайте Основной и Резервный контур стрелками или свайпом влево/вправо.':'Отсканируйте QR-код с другого устройства или отправьте файлы в бот.'}</p>`}
         <div class="qr-viewer" id="qr-swipe-area">
           <div class="qr-tabs ${multi?'':'single'}">
             ${items.map((it,i)=>`<button type="button" data-qr-tab="${i}" class="${i===idx?'active':''}">${it.role==='reserve'?'🛡 Резерв (RS)':'🟢 Основной'}</button>`).join('')}
@@ -405,12 +405,24 @@
     openSheet(familyMember?'Продлить всю семью':'Купить подписку',`${monthWord(months)}, до ${selectedDevices} устройств. ${priceLine}${familyWarning}`,[{id:'cancel',label:'Отмена',run:closeSheet},{id:'pay',label:`Оплатить ${price} ₽`,class:'primary',run:async()=>{const r=await runAction('payments',{months,devices:selectedDevices},{refresh:false,progress:'Создаём безопасный счёт…'});if(r){pendingPayment=r;$('pending-payment').hidden=false;$('pending-amount').textContent=`${r.amount} ₽`;tg?.openLink(r.confirmation_url);}}}]);
   }
   function confirmPlanChange(){const current=state.subscription.device_limit;openSheet('Изменить лимит?',`Текущий тариф: ${current} устройств. Новый тариф: ${selectedDevices}. Это не покупка — деньги не списываются, изменится остаток дней.`,[{id:'cancel',label:'Отмена',run:closeSheet},{id:'go',label:'Изменить лимит',class:'primary',run:()=>runAction('plan',{devices:selectedDevices,operation_id:operationId(),state_version:state.state_version},{progress:'Меняем лимит…'})}]);}
-  function confirmRegenerate(){if(state.subscription.protocol==='amneziawg'){go('devices');notify('Выберите устройство для перевыпуска.');return;}openSheet('Перевыпустить доступ?', 'Старая ссылка сразу перестанет работать. Новую бот отправит в Telegram.',[{id:'cancel',label:'Отмена',run:closeSheet},{id:'go',label:'Перевыпустить',class:'danger',run:async()=>{const r=await runAction('regenerate',{operation_id:operationId(),state_version:state.state_version},{progress:'Безопасно перевыпускаем доступ…',notifySuccess:false});if(r)showDeliveryResult(r.message);}}]);}
+  function confirmRegenerate(){
+    if(state.access_mode==='family_member'){
+      const first=state.devices?.[0];
+      if(first&&state.devices.length===1){devicePrompt('family-regenerate',first.slot,first.owner_id);return;}
+      go('devices');notify('Выберите свой семейный слот для перевыпуска.');return;
+    }
+    if(state.subscription.protocol==='amneziawg'){
+      const own=(state.devices||[]).filter((d)=>!d.kind||d.kind==='personal');
+      if(own.length===1){devicePrompt('regenerate',own[0].slot,0);return;}
+      go('devices');notify('Выберите устройство для перевыпуска.');return;
+    }
+    openSheet('Перевыпустить доступ?', 'Старая ссылка сразу перестанет работать. Мы сразу покажем новый QR-код и отправим ссылку в бот.',[{id:'cancel',label:'Отмена',run:closeSheet},{id:'go',label:'Перевыпустить',class:'danger',run:async()=>{const r=await runAction('regenerate',{operation_id:operationId(),state_version:state.state_version},{progress:'Безопасно перевыпускаем доступ…',notifySuccess:false});if(r)await openQrModal(1,0,'Ключ обновлён · новая ссылка также отправлена в бот');}}]);
+  }
   function devicePrompt(action,slot,ownerId=0){
     if(action==='qr'||action==='family-qr'){openQrModal(slot,action==='family-qr'?ownerId:0);return;}
-    if(['add','rename','family-rename'].includes(action)){openSheet(action==='add'?'Новое устройство':'Переименовать устройство','Укажите короткое понятное название — например, «iPhone» или «Ноутбук».',[{id:'cancel',label:'Отмена',run:closeSheet},{id:'go',label:action==='add'?'Создать':'Сохранить',class:'primary',run:async(name)=>{const createsConfig=action==='add';const r=await runAction('devices',{action,slot,name,owner_id:ownerId||undefined},{progress:createsConfig?'Создаём и отправляем настройки…':'Сохраняем название…',notifySuccess:!createsConfig});if(r&&createsConfig)showDeliveryResult(r.message);}}],true);return;}
+    if(['add','rename','family-rename'].includes(action)){openSheet(action==='add'?'Новое устройство':'Переименовать устройство','Укажите короткое понятное название — например, «iPhone» или «Ноутбук».',[{id:'cancel',label:'Отмена',run:closeSheet},{id:'go',label:action==='add'?'Создать':'Сохранить',class:'primary',run:async(name)=>{const createsConfig=action==='add';const r=await runAction('devices',{action,slot,name,owner_id:ownerId||undefined},{progress:createsConfig?'Создаём устройство и готовим QR…':'Сохраняем название…',notifySuccess:!createsConfig});if(r&&createsConfig)await openQrModal(slot,0,'Устройство создано · файлы .conf также отправлены в бот');}}],true);return;}
     const device=state.devices.find((item)=>item.slot===slot);
-    const labels={get:['Отправить файлы в бот',`Файлы .conf и QR для «${device?.name||`Слот ${slot}`}» придут в чат с ботом.`,'Отправить в бот'],regenerate:['Перевыпустить ключ?',`Старый ключ устройства «${device?.name||`Слот ${slot}`}» перестанет работать.`,'Перевыпустить'],delete:['Удалить устройство?',`Ключ «${device?.name||`Слот ${slot}`}» перестанет работать на основном и резервном сервере.`,'Удалить'],['revoke-family']:['Отозвать семейный доступ?',`Участник «${device?.member_name||device?.name||`Слот ${slot}`}» потеряет доступ на основном и резервном сервере.`,'Отозвать'],['cancel-invite']:['Отменить приглашение?','Ссылка перестанет действовать, а слот снова станет свободным.','Отменить приглашение'],['family-get']:['Получить семейные настройки',`Файлы .conf и QR для «${device?.name||`Слот ${slot}`}» придут в ваш чат с ботом.`,'Отправить в бот'],['family-regenerate']:['Перевыпустить семейный ключ?',`Только ваш ключ «${device?.name||`Слот ${slot}`}» перестанет работать. Доступ остальных участников не изменится.`,'Перевыпустить'],['family-leave']:['Выйти из семьи?','Ваш ключ сразу перестанет работать, а уже оплаченные вами семейные дни останутся у общей подписки. После выхода личный тариф нужно купить отдельно.','Выйти из семьи']};const [title,text,label]=labels[action];openSheet(title,text,[{id:'cancel',label:'Назад',run:closeSheet},{id:'go',label,class:['delete','regenerate','revoke-family','cancel-invite','family-regenerate','family-leave'].includes(action)?'danger':'primary',run:async()=>{const sendsConfig=['get','regenerate','family-get','family-regenerate'].includes(action);const rotating=['regenerate','family-regenerate'].includes(action);const r=await runAction('devices',{action,slot,owner_id:ownerId||undefined,operation_id:rotating?operationId():undefined,subject_id:action==='revoke-family'?device?.member_id:undefined,invite_version:action==='cancel-invite'?device?.invite_version:undefined,device_version:action==='delete'?device?.device_version:undefined},{progress:sendsConfig?'Готовим и отправляем настройки…':'Сохраняем изменения…',notifySuccess:!sendsConfig});if(r&&sendsConfig)showDeliveryResult(r.message);}}]);
+    const labels={get:['Отправить файлы в бот',`Файлы .conf и QR для «${device?.name||`Слот ${slot}`}» придут в чат с ботом.`,'Отправить в бот'],regenerate:['Перевыпустить ключ?',`Старый ключ устройства «${device?.name||`Слот ${slot}`}» перестанет работать. Новый QR сразу откроется здесь, а файлы .conf придут в бот.`,'Перевыпустить'],delete:['Удалить устройство?',`Ключ «${device?.name||`Слот ${slot}`}» перестанет работать на основном и резервном сервере.`,'Удалить'],['revoke-family']:['Отозвать семейный доступ?',`Участник «${device?.member_name||device?.name||`Слот ${slot}`}» потеряет доступ на основном и резервном сервере.`,'Отозвать'],['cancel-invite']:['Отменить приглашение?','Ссылка перестанет действовать, а слот снова станет свободным.','Отменить приглашение'],['family-get']:['Получить семейные настройки',`Файлы .conf и QR для «${device?.name||`Слот ${slot}`}» придут в ваш чат с ботом.`,'Отправить в бот'],['family-regenerate']:['Перевыпустить семейный ключ?',`Только ваш ключ «${device?.name||`Слот ${slot}`}» перестанет работать. Новый QR сразу откроется здесь, а файлы придут в бот.`,'Перевыпустить'],['family-leave']:['Выйти из семьи?','Ваш ключ сразу перестанет работать, а уже оплаченные вами семейные дни останутся у общей подписки. После выхода личный тариф нужно купить отдельно.','Выйти из семьи']};const [title,text,label]=labels[action];openSheet(title,text,[{id:'cancel',label:'Назад',run:closeSheet},{id:'go',label,class:['delete','regenerate','revoke-family','cancel-invite','family-regenerate','family-leave'].includes(action)?'danger':'primary',run:async()=>{const sendsConfig=['get','regenerate','family-get','family-regenerate'].includes(action);const rotating=['regenerate','family-regenerate'].includes(action);const r=await runAction('devices',{action,slot,owner_id:ownerId||undefined,operation_id:rotating?operationId():undefined,subject_id:action==='revoke-family'?device?.member_id:undefined,invite_version:action==='cancel-invite'?device?.invite_version:undefined,device_version:action==='delete'?device?.device_version:undefined},{progress:rotating?'Перевыпускаем ключ и готовим QR…':sendsConfig?'Отправляем настройки в чат…':'Сохраняем изменения…',notifySuccess:!sendsConfig});if(r){if(rotating)await openQrModal(slot,action==='family-regenerate'?ownerId:0,'Ключ перевыпущен · новые файлы .conf также в чате бота');else if(sendsConfig)showDeliveryResult(r.message);}}}]);
   }
 
   async function sendGlobalConfig(){
